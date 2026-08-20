@@ -1,0 +1,39 @@
+{
+  "description": "Rampage Alpaca - native Canvas WeChat mini game",
+  "miniprogramRoot": "./",
+  "compileType": "game",
+  "setting": {
+    "es6": true,
+    "minified": false,
+    "enhance": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "appid": "wxd5396e0beb73d9f7",
+  "projectname": "RampageAlpaca",
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [{
+      "type": "folder",
+      "value": "temp"
+    }],
+    "include": []
+  },
+  "isGameTourist": false,
+  "editorSetting": {}
+}
