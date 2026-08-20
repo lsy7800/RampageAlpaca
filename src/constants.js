@@ -17,6 +17,8 @@ const TREE = Object.freeze({
   trunkBottom: 1090,
   branchWidth: 250,
   branchHeight: 160,
+  // Pull each branch root into the trunk so the two assets visually connect.
+  branchTrunkOverlap: -23,
   // Row 0 is the only danger row. Its bottom aligns with the player's head;
   // the next row remains separated by a visible gap.
   // Keep the branch rows slightly higher than the character. Row 0 leaves a

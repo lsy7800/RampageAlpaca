@@ -106,6 +106,9 @@ class Renderer {
   }
 
   drawTree(ctx, rows) {
+    // The trunk is the base layer; branches are drawn afterwards so they sit
+    // visibly on top of it at each junction.
+    ctx.drawImage(this.images.trunk, TREE.x - TREE.width / 2, 0, TREE.width, TREE.trunkBottom);
     rows.forEach((side, index) => {
       if (side === SIDE.NONE) return;
       // Row 0 is drawn at the collision line; each following row is separated
@@ -115,17 +118,14 @@ class Renderer {
       const height = TREE.branchHeight;
       ctx.save();
       if (side === SIDE.LEFT) {
-        ctx.translate(TREE.x, y);
+        ctx.translate(TREE.x + TREE.branchTrunkOverlap, y);
         ctx.scale(-1, 1);
         ctx.drawImage(this.images.branch, 0, 0, width, height);
       } else {
-        ctx.drawImage(this.images.branch, TREE.x, y, width, height);
+        ctx.drawImage(this.images.branch, TREE.x - TREE.branchTrunkOverlap, y, width, height);
       }
       ctx.restore();
     });
-    // The trunk is the foreground layer at every branch junction, hiding the
-    // branch roots and making branches appear to grow out from behind it.
-    ctx.drawImage(this.images.trunk, TREE.x - TREE.width / 2, 0, TREE.width, TREE.trunkBottom);
   }
 
   drawClouds(ctx, offset = 0) {
