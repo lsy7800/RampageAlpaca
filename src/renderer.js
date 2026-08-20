@@ -52,6 +52,13 @@ class Renderer {
     ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
     ctx.translate(this.offsetX, this.offsetY);
     ctx.scale(this.scale, this.scale);
+    const isShaking = model.isShaking === true;
+    const shakeX = isShaking && typeof model.shakeX === 'number' ? model.shakeX : 0;
+    const shakeY = isShaking && typeof model.shakeY === 'number' ? model.shakeY : 0;
+    if (isShaking) {
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+    }
 
     this.drawBackground(ctx);
     this.drawTree(ctx, model.rows);
@@ -62,6 +69,7 @@ class Renderer {
 
     if (model.state === STATE.READY) this.drawReady(ctx);
     if (model.state === STATE.GAME_OVER) this.drawGameOver(ctx, model);
+    if (isShaking) ctx.restore();
   }
 
   drawBackground(ctx) {
@@ -153,7 +161,9 @@ class Renderer {
   }
 
   drawPlayer(ctx, side, state, chopFrame) {
-    const image = chopFrame === 0 ? this.images.alpacaFrame1 : this.images.alpacaFrame2;
+    const image = state === STATE.GAME_OVER || chopFrame === 1
+      ? this.images.alpacaFrame2
+      : this.images.alpacaFrame1;
     const centerX = side === SIDE.LEFT ? TREE.x - PLAYER.centerOffset : TREE.x + PLAYER.centerOffset;
     const y = TREE.playerY - PLAYER.topOffset;
     ctx.save();
@@ -179,12 +189,25 @@ class Renderer {
   drawHud(ctx, model) {
     this.drawEnergyBar(ctx, model.energy);
     ctx.textAlign = 'center';
+    const pulse = model.scorePulse || 0;
+    const scoreScale = 1 + pulse * 0.22;
+    const scoreY = 126 - pulse * 14;
+    ctx.save();
+    ctx.translate(DESIGN_WIDTH / 2, scoreY);
+    ctx.scale(scoreScale, scoreScale);
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 86px sans-serif';
-    ctx.fillText(String(model.score), DESIGN_WIDTH / 2, 126);
+    ctx.fillText(String(model.score), 0, 0);
+    ctx.restore();
     ctx.fillStyle = 'rgba(38, 75, 54, 0.7)';
     ctx.font = '28px sans-serif';
     ctx.fillText(`最高分 ${model.highScore}`, DESIGN_WIDTH / 2, 168);
+    if (model.combo > 1) {
+      ctx.fillStyle = model.multiplier > 1 ? '#d77a40' : '#57713e';
+      ctx.font = 'bold 25px sans-serif';
+      const multiplierLabel = model.multiplier > 1 ? ` ×${model.multiplier}` : '';
+      ctx.fillText(`${model.combo} 连击${multiplierLabel}`, DESIGN_WIDTH / 2, 204);
+    }
   }
 
   drawEnergyBar(ctx, energy) {

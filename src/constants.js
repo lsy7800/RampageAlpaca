@@ -82,6 +82,12 @@ const ENERGY = Object.freeze({
   dangerThreshold: 0.15
 });
 
+const COMBO = Object.freeze({
+  multiplierStep: 5,
+  maxMultiplier: 4,
+  scorePulseDuration: 0.18
+});
+
 module.exports = {
   DESIGN_WIDTH,
   DESIGN_HEIGHT,
@@ -92,5 +98,6 @@ module.exports = {
   GROUND,
   BACKGROUND,
   CLOUDS,
-  ENERGY
+  ENERGY,
+  COMBO
 };
