@@ -16,18 +16,23 @@ class Tree {
     );
   }
 
-  chop() {
+  chop(emptyChance) {
     const danger = this.rows.shift();
-    const next = this.generateBranch();
+    const next = this.generateBranch(emptyChance);
     this.rows.push(next);
     return danger;
   }
 
-  generateBranch() {
-    // Empty rows give the player time to change sides. Keep the two rows
-    // nearest the player from containing branches on both sides at once.
+  generateBranch(emptyChance = 0.4) {
+    // Empty rows become rarer at higher levels. Consecutive non-empty rows
+    // still alternate sides, so the generator never creates an unfair wall.
     const roll = this.random();
-    let side = roll < 0.3 ? SIDE.LEFT : roll < 0.6 ? SIDE.RIGHT : SIDE.NONE;
+    const branchChance = (1 - emptyChance) / 2;
+    let side = roll < branchChance
+      ? SIDE.LEFT
+      : roll < branchChance * 2
+        ? SIDE.RIGHT
+        : SIDE.NONE;
 
     if (side !== SIDE.NONE && side === this.lastGeneratedSide) {
       side = side === SIDE.LEFT ? SIDE.RIGHT : SIDE.LEFT;

@@ -1,4 +1,4 @@
-const { STATE, SIDE, ENERGY, CLOUDS, COMBO } = require('./constants');
+const { STATE, SIDE, ENERGY, CLOUDS, LEVEL, COMBO } = require('./constants');
 const { Tree } = require('./tree');
 const { Renderer } = require('./renderer');
 const { ScoreStorage } = require('./storage');
@@ -22,6 +22,9 @@ class Game {
     this.score = 0;
     this.highScore = this.storage.getHighScore();
     this.energy = ENERGY.max;
+    this.level = 1;
+    this.levelUpElapsed = LEVEL.levelUpAnimationDuration;
+    this.levelUpLevel = null;
     this.combo = 0;
     this.multiplier = 1;
     this.scorePulseElapsed = COMBO.scorePulseDuration;
@@ -59,12 +62,13 @@ class Game {
     this.playerSide = screenX < this.renderer.viewportWidth / 2 ? SIDE.LEFT : SIDE.RIGHT;
     this.state = STATE.PLAYING;
 
-    const fallingBranch = this.tree.chop();
+    const fallingBranch = this.tree.chop(this.getEmptyChance());
     this.chopFlash = 1;
     this.chopFrame = 0;
     this.chopAnimationElapsed = 0;
     this.shakeElapsed = 0;
     this.audio.playChop();
+    this.triggerChopHaptic();
 
     if (fallingBranch === this.playerSide) {
       this.endGame();
@@ -77,12 +81,18 @@ class Game {
   registerSuccessfulChop() {
     this.combo += 1;
     const previousMultiplier = this.multiplier;
+    const previousLevel = this.level;
     this.multiplier = Math.min(
       COMBO.maxMultiplier,
       Math.floor(this.combo / COMBO.multiplierStep) + 1
     );
     this.score += this.multiplier;
     this.energy = Math.min(ENERGY.max, this.energy + ENERGY.restorePerChop);
+    this.level = this.getLevelForScore(this.score);
+    if (this.level > previousLevel) {
+      this.levelUpElapsed = 0;
+      this.levelUpLevel = this.level;
+    }
     this.scorePulseElapsed = 0;
     this.scorePulseStrength = this.multiplier > previousMultiplier ? 1.35 : 1;
   }
@@ -101,6 +111,9 @@ class Game {
     this.tree.reset();
     this.score = 0;
     this.energy = ENERGY.max;
+    this.level = 1;
+    this.levelUpElapsed = LEVEL.levelUpAnimationDuration;
+    this.levelUpLevel = null;
     this.combo = 0;
     this.multiplier = 1;
     this.scorePulseElapsed = COMBO.scorePulseDuration;
@@ -119,12 +132,13 @@ class Game {
     const elapsed = Math.min((timestamp - this.lastFrameAt) / 1000, 0.05);
     this.lastFrameAt = timestamp;
     if (this.state === STATE.PLAYING) {
-      this.energy = Math.max(0, this.energy - ENERGY.drainPerSecond * elapsed);
+      this.energy = Math.max(0, this.energy - this.getEnergyDrainPerSecond() * elapsed);
       if (this.energy === 0) this.endGame();
     }
     this.chopFlash = Math.max(0, this.chopFlash - elapsed * 7);
     this.updateChopAnimation(elapsed);
     this.updateScorePulse(elapsed);
+    this.updateLevelUpAnimation(elapsed);
     if (this.shakeElapsed !== null) this.updateScreenShake(elapsed);
     this.cloudOffset = (this.cloudOffset + CLOUDS.speed * elapsed) % CLOUDS.width;
     this.renderer.render({
@@ -132,6 +146,9 @@ class Game {
       score: this.score,
       highScore: this.highScore,
       energy: this.energy,
+      level: this.level,
+      levelUpProgress: this.getLevelUpProgress(),
+      levelUpLevel: this.levelUpLevel,
       combo: this.combo,
       multiplier: this.multiplier,
       scorePulse: this.getScorePulse(),
@@ -171,6 +188,45 @@ class Game {
     if (this.scorePulseElapsed >= COMBO.scorePulseDuration) return 0;
     const progress = this.scorePulseElapsed / COMBO.scorePulseDuration;
     return Math.sin(progress * Math.PI) * this.scorePulseStrength;
+  }
+
+  getLevelForScore(score) {
+    return Math.floor(score / LEVEL.scorePerLevel) + 1;
+  }
+
+  getEmptyChance() {
+    return Math.max(
+      LEVEL.minimumEmptyChance,
+      LEVEL.initialEmptyChance - (this.level - 1) * LEVEL.emptyChanceDecrease
+    );
+  }
+
+  getEnergyDrainPerSecond() {
+    return ENERGY.drainPerSecond + (this.level - 1) * LEVEL.energyDrainIncrease;
+  }
+
+  updateLevelUpAnimation(elapsed) {
+    this.levelUpElapsed = Math.min(
+      LEVEL.levelUpAnimationDuration,
+      this.levelUpElapsed + elapsed
+    );
+    if (this.levelUpElapsed >= LEVEL.levelUpAnimationDuration) {
+      this.levelUpLevel = null;
+    }
+  }
+
+  triggerChopHaptic() {
+    if (typeof this.platform.vibrateShort !== 'function') return;
+    try {
+      this.platform.vibrateShort({ type: 'light' });
+    } catch (error) {
+      // Haptics are optional and are unavailable in some DevTools versions.
+    }
+  }
+
+  getLevelUpProgress() {
+    if (this.levelUpLevel === null) return 0;
+    return 1 - this.levelUpElapsed / LEVEL.levelUpAnimationDuration;
   }
 
   updateScreenShake(elapsed) {

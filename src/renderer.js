@@ -66,6 +66,7 @@ class Renderer {
     this.drawGround(ctx);
     this.drawPlayer(ctx, model.playerSide, model.state, model.chopFrame);
     this.drawHud(ctx, model);
+    this.drawLevelUpNotice(ctx, model.levelUpLevel, model.levelUpProgress);
 
     if (model.state === STATE.READY) this.drawReady(ctx);
     if (model.state === STATE.GAME_OVER) this.drawGameOver(ctx, model);
@@ -201,7 +202,7 @@ class Renderer {
     ctx.restore();
     ctx.fillStyle = 'rgba(38, 75, 54, 0.7)';
     ctx.font = '28px sans-serif';
-    ctx.fillText(`最高分 ${model.highScore}`, DESIGN_WIDTH / 2, 168);
+    ctx.fillText(`最高分 ${model.highScore} · Lv.${model.level}`, DESIGN_WIDTH / 2, 168);
     if (model.combo > 1) {
       ctx.fillStyle = model.multiplier > 1 ? '#d77a40' : '#57713e';
       ctx.font = 'bold 25px sans-serif';
@@ -234,6 +235,27 @@ class Renderer {
       this.roundRect(ctx, x + inset + 4, y + inset + 4, (width - 20) * ratio, height - 20, 7);
       ctx.fill();
     }
+  }
+
+  drawLevelUpNotice(ctx, level, progress) {
+    if (!level || progress <= 0 || progress >= 1) return;
+    const rise = progress * 42;
+    const scale = 0.7 + Math.sin(Math.min(progress, 0.55) / 0.55 * Math.PI / 2) * 0.55;
+    const alpha = progress < 0.7 ? 1 : (1 - progress) / 0.3;
+    const y = 280 - rise;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(DESIGN_WIDTH / 2, y);
+    ctx.scale(scale, scale);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#fff8db';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.fillText('等级提升！', 0, 0);
+    ctx.fillStyle = '#d77a40';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.fillText(`Lv.${level}`, 0, 43);
+    ctx.restore();
   }
 
   roundRect(ctx, x, y, width, height, radius) {

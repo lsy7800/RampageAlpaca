@@ -82,6 +82,18 @@ const ENERGY = Object.freeze({
   dangerThreshold: 0.15
 });
 
+const LEVEL = Object.freeze({
+  scorePerLevel: 30,
+  // Every level removes some breathing room, capped so the player still has
+  // readable openings instead of a wall of branches.
+  initialEmptyChance: 0.4,
+  emptyChanceDecrease: 0.035,
+  minimumEmptyChance: 0.12,
+  // Energy pressure rises with the level, independently of branch safety.
+  energyDrainIncrease: 1.2,
+  levelUpAnimationDuration: 0.8
+});
+
 const COMBO = Object.freeze({
   multiplierStep: 5,
   maxMultiplier: 4,
@@ -99,5 +111,6 @@ module.exports = {
   BACKGROUND,
   CLOUDS,
   ENERGY,
+  LEVEL,
   COMBO
 };
