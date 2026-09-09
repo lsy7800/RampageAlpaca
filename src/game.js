@@ -47,11 +47,13 @@ class Game {
     this.powerUpCooldown = 0;
     this.energyFreezeRemaining = 0;
     this.berserkRemaining = 0;
+    this.barkCharmRemaining = 0;
     this.shieldCharges = 0;
     this.powerUpNotice = null;
     this.powerUpNoticeElapsed = 0;
     this.comboRemaining = 0;
     this.debris = [];
+    this.trunkPieces = [];
     this.shieldBreakRemaining = 0;
     this.paused = false;
   }
@@ -98,6 +100,7 @@ class Game {
     this.powerUpCooldown = Math.max(0, this.powerUpCooldown - 1);
     const outcome = this.tree.chop(this.getEmptyChance());
     this.chopFlash = 1;
+    this.trunkPieces.push({ age: 0, side: this.playerSide });
     this.chopFrame = 0;
     this.chopAnimationElapsed = 0;
     this.shakeElapsed = 0;
@@ -108,12 +111,12 @@ class Game {
       if (this.berserkRemaining > 0) {
         this.debris.push({ side: outcome.danger, age: 0 });
         this.audio.play('hit');
-        this.showPowerUpNotice('狂暴斧击飞树枝！');
+        this.showPowerUpNotice('绩效奖金击飞树枝！');
       } else if (this.shieldCharges > 0) {
         this.shieldCharges -= 1;
         this.shieldBreakRemaining = 0.5;
         this.audio.play('hit');
-        this.showPowerUpNotice('护盾抵挡了一次树枝！');
+        this.showPowerUpNotice('摸鱼许可证生效，躲过一次树枝！');
       } else {
         this.endGame();
         return;
@@ -174,6 +177,7 @@ class Game {
     this.drops.reset();
     this.comboRemaining = 0;
     this.debris = [];
+    this.trunkPieces = [];
     this.shieldBreakRemaining = 0;
     this.tree.reset();
     this.score = 0;
@@ -208,7 +212,8 @@ class Game {
     if (this.state === STATE.PLAYING && !this.paused) {
       const drainTime = Math.max(0, elapsed - this.energyFreezeRemaining);
       this.updatePowerUpEffects(elapsed);
-      this.energy = Math.max(0, this.energy - this.getEnergyDrainPerSecond() * drainTime);
+      const multiplier = this.barkCharmRemaining > 0 ? POWER_UP.barkCharmDrainMultiplier : 1;
+      this.energy = Math.max(0, this.energy - this.getEnergyDrainPerSecond() * drainTime * multiplier);
       this.comboRemaining = Math.max(0, this.comboRemaining - elapsed);
       if (this.comboRemaining === 0) { this.combo = 0; this.multiplier = 1; }
       if (this.energy === 0) this.endGame();
@@ -216,6 +221,8 @@ class Game {
     }
     this.debris.forEach((piece) => { piece.age += elapsed; });
     this.debris = this.debris.filter((piece) => piece.age < 0.65);
+    this.trunkPieces.forEach((piece) => { piece.age += elapsed; });
+    this.trunkPieces = this.trunkPieces.filter((piece) => piece.age < 0.72);
     this.shieldBreakRemaining = Math.max(0, this.shieldBreakRemaining - elapsed);
     this.chopFlash = Math.max(0, this.chopFlash - elapsed * 7);
     this.updateChopAnimation(elapsed);
@@ -245,8 +252,10 @@ class Game {
       shakeY: this.shakeY,
       energyFreezeRemaining: this.energyFreezeRemaining,
       berserkRemaining: this.berserkRemaining,
+      barkCharmRemaining: this.barkCharmRemaining,
       berserkDuration: POWER_UP.berserkDuration,
       debris: this.debris,
+      trunkPieces: this.trunkPieces,
       shieldBreakRemaining: this.shieldBreakRemaining,
       audioEnabled: this.audio.enabled,
       leaderboard: this.leaderboard,
@@ -300,19 +309,25 @@ class Game {
       this.energy = ENERGY.max;
       this.energyFreezeRemaining = POWER_UP.energyFreezeDuration;
       this.audio.play('pickup');
-      this.showPowerUpNotice('体力全满！3 秒不消耗');
+      this.showPowerUpNotice('咖啡续命！3 秒不消耗');
       return;
     }
     if (powerUp === POWER_UP.SHIELD) {
       this.shieldCharges = 1;
       this.audio.play('pickup');
-      this.showPowerUpNotice('获得护盾！');
+      this.showPowerUpNotice('获得摸鱼许可证！');
       return;
     }
     if (powerUp === POWER_UP.BERSERK_AXE) {
       this.berserkRemaining = POWER_UP.berserkDuration;
       this.audio.play('level');
-      this.showPowerUpNotice('狂暴斧！3 秒无敌');
+      this.showPowerUpNotice('绩效奖金！3 秒无敌');
+      return;
+    }
+    if (powerUp === POWER_UP.BARK_CHARM) {
+      this.barkCharmRemaining = POWER_UP.barkCharmDuration;
+      this.audio.play('pickup');
+      this.showPowerUpNotice('大饼到账！体力消耗减半');
     }
   }
 
@@ -320,6 +335,7 @@ class Game {
     const previous = this.berserkRemaining;
     this.energyFreezeRemaining = Math.max(0, this.energyFreezeRemaining - elapsed);
     this.berserkRemaining = Math.max(0, this.berserkRemaining - elapsed);
+    this.barkCharmRemaining = Math.max(0, this.barkCharmRemaining - elapsed);
     if (previous > 1 && this.berserkRemaining <= 1) this.audio.play('countdown');
     if (previous > 0 && this.berserkRemaining === 0) this.showPowerUpNotice('狂暴结束，注意躲避！');
     if (this.powerUpNoticeElapsed > 0) {

@@ -9,7 +9,7 @@ class Drops {
     if (this.random() >= POWER_UP.spawnChance) return;
     const side = danger === SIDE.LEFT ? SIDE.RIGHT : danger === SIDE.RIGHT ? SIDE.LEFT
       : this.random() < 0.5 ? SIDE.LEFT : SIDE.RIGHT;
-    const types = [POWER_UP.ENERGY_FRUIT, POWER_UP.SHIELD, POWER_UP.BERSERK_AXE];
+    const types = [POWER_UP.ENERGY_FRUIT, POWER_UP.SHIELD, POWER_UP.BERSERK_AXE, POWER_UP.BARK_CHARM];
     this.item = { type: types[Math.floor(this.random() * types.length)], side, age: 0 };
     this.cooldown = POWER_UP.minimumChopsBetweenSpawns;
   }

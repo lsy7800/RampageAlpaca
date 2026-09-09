@@ -115,8 +115,9 @@ const COMBO = Object.freeze({
 const POWER_UP = Object.freeze({
   NONE: 'none',
   ENERGY_FRUIT: 'energy-fruit',
-  SHIELD: 'shield',
+  SHIELD: 'fishing-license',
   BERSERK_AXE: 'berserk-axe',
+  BARK_CHARM: 'bark-charm',
   unlockScore: 15,
   fallDuration: 1.8,
   groundDuration: 2,
@@ -126,6 +127,8 @@ const POWER_UP = Object.freeze({
   minimumChopsBetweenSpawns: 8,
   energyFreezeDuration: 3,
   berserkDuration: 3,
+  barkCharmDuration: 4,
+  barkCharmDrainMultiplier: 0.5,
   noticeDuration: 1.2
 });
 

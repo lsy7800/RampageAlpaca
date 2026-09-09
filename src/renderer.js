@@ -158,37 +158,35 @@ class Renderer {
     ctx.arc(0, 0, 37, 0, Math.PI * 2);
     ctx.fill();
     if (powerUp === POWER_UP.ENERGY_FRUIT) {
-      ctx.fillStyle = '#ef7658';
-      ctx.beginPath();
-      ctx.arc(0, 6, 23, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#4f8d47';
-      ctx.beginPath();
-      ctx.ellipse(10, -18, 12, 6, -0.45, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = '#fff4c5';
+      ctx.fillRect(-22, -22, 40, 45);
+      ctx.strokeStyle = '#6b3e25'; ctx.lineWidth = 4;
+      ctx.strokeRect(-22, -22, 40, 45);
+      ctx.beginPath(); ctx.arc(22, 0, 10, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+      ctx.fillStyle = '#6b3e25'; ctx.fillRect(-18, -17, 32, 9);
     } else if (powerUp === POWER_UP.SHIELD) {
-      ctx.fillStyle = '#5b9ccd';
-      ctx.beginPath();
-      ctx.moveTo(0, -28);
-      ctx.lineTo(24, -16);
-      ctx.lineTo(18, 22);
-      ctx.lineTo(0, 33);
-      ctx.lineTo(-18, 22);
-      ctx.lineTo(-24, -16);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#e9f8ff';
-      ctx.lineWidth = 5;
-      ctx.stroke();
+      ctx.fillStyle = '#fff4c5';
+      ctx.fillRect(-27, -30, 54, 60);
+      ctx.strokeStyle = '#76572f';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-27, -30, 54, 60);
+      ctx.fillStyle = '#d77a40';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('摸鱼', 0, -4);
+      ctx.fillText('许可', 0, 16);
+    } else if (powerUp === POWER_UP.BARK_CHARM) {
+      ctx.fillStyle = '#e7b65e';
+      ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#bd7b2e'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 1.5); ctx.stroke();
     } else {
-      ctx.strokeStyle = '#724e34';
-      ctx.lineWidth = 10;
-      ctx.beginPath();
-      ctx.moveTo(-16, 22);
-      ctx.lineTo(15, -18);
-      ctx.stroke();
-      ctx.fillStyle = '#e3edf0';
-      ctx.fillRect(8, -30, 28, 18);
+      ctx.fillStyle = '#83bb66';
+      ctx.fillRect(-30, -18, 60, 36);
+      ctx.strokeStyle = '#315746'; ctx.lineWidth = 4;
+      ctx.strokeRect(-30, -18, 60, 36);
+      ctx.fillStyle = '#fff4c5'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('¥', 0, 9);
     }
     ctx.restore();
   }
@@ -333,7 +331,8 @@ class Renderer {
   drawPowerUpStatus(ctx, model) {
     const labels = [];
     if (model.energyFreezeRemaining > 0) labels.push(`体力冻结 ${model.energyFreezeRemaining.toFixed(1)}s`);
-    if (model.shieldCharges > 0) labels.push('护盾 ×1');
+    if (model.shieldCharges > 0) labels.push('摸鱼许可证 ×1');
+    if (model.barkCharmRemaining > 0) labels.push(`大饼 ${model.barkCharmRemaining.toFixed(1)}s`);
     this.drawBerserkTimer(ctx, model.berserkRemaining, model.berserkDuration);
     if (!labels.length) return;
     ctx.textAlign = 'right';
@@ -369,7 +368,7 @@ class Renderer {
     ctx.scale(scale, scale);
     ctx.fillStyle = '#fff8dd';
     ctx.font = 'bold 31px sans-serif';
-    ctx.fillText(`⚡ 狂暴斧  ${remaining.toFixed(1)} 秒`, 0, 0);
+    ctx.fillText(`💰 绩效奖金  ${remaining.toFixed(1)} 秒`, 0, 0);
     ctx.restore();
   }
 
@@ -443,6 +442,18 @@ class Renderer {
       ctx.rotate(direction * piece.age * 9);
       ctx.scale(direction, 1);
       ctx.drawImage(this.images.branch, -125, -80, 250, 160);
+      ctx.restore();
+    });
+    (model.trunkPieces || []).forEach((piece) => {
+      const progress = piece.age / 0.72;
+      const direction = piece.side === SIDE.LEFT ? -1 : 1;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - progress);
+      ctx.translate(TREE.x + direction * (18 + progress * 220),
+        TREE.playerY - TREE.branchOffsetY + 42 - progress * 140 + progress * progress * 250);
+      ctx.rotate(direction * progress * 7);
+      // A short vertical trunk section visually separates from the main trunk.
+      ctx.drawImage(this.images.trunk, 0, 250, 100, 150, -25, -38, 50, 76);
       ctx.restore();
     });
   }
