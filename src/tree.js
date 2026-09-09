@@ -1,4 +1,4 @@
-const { SIDE, TREE } = require('./constants');
+const { SIDE, TREE, POWER_UP } = require('./constants');
 
 class Tree {
   constructor(random = Math.random) {
@@ -14,13 +14,19 @@ class Tree {
       { length: TREE.visibleRows },
       (_, index) => (index < 2 ? SIDE.NONE : this.generateBranch())
     );
+    this.powerUps = Array.from({ length: TREE.visibleRows }, () => POWER_UP.NONE);
   }
 
-  chop(emptyChance) {
+  chop(emptyChance, createPowerUp = null) {
     const danger = this.rows.shift();
+    const collectedPowerUp = this.powerUps.shift();
     const next = this.generateBranch(emptyChance);
+    const incomingPowerUp = next === SIDE.NONE && typeof createPowerUp === 'function'
+      ? createPowerUp()
+      : POWER_UP.NONE;
     this.rows.push(next);
-    return danger;
+    this.powerUps.push(incomingPowerUp);
+    return { danger, collectedPowerUp };
   }
 
   generateBranch(emptyChance = 0.4) {

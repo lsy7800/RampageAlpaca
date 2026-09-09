@@ -1,4 +1,4 @@
-const HIGH_SCORE_KEY = 'rampage-alpaca-high-score';
+const HIGH_SCORE_KEY = 'rampage-alpaca-season-1';
 
 class ScoreStorage {
   constructor(platform) {

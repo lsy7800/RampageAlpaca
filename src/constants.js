@@ -42,7 +42,15 @@ const PLAYER = Object.freeze({
   width: 208,
   height: 267,
   centerOffset: 155,
-  topOffset: 120
+  topOffset: 120,
+  // The berserk sequence includes both the bear and alpaca. Anchor the
+  // alpaca within that wider composition at the usual player position.
+  // Scale the combined illustration so its alpaca remains comparable to the
+  // standard playable character, rather than filling most of the screen.
+  berserkWidth: 310,
+  berserkHeight: 427,
+  berserkAlpacaAnchorX: 210,
+  berserkBottomY: 1195
 });
 
 const GROUND = Object.freeze({
@@ -79,7 +87,8 @@ const CLOUDS = Object.freeze({
 const ENERGY = Object.freeze({
   max: 100,
   drainPerSecond: 9,
-  restorePerChop: 15,
+  restorePerChop: 8,
+  maxDrainPerSecond: 30,
   warningThreshold: 0.3,
   dangerThreshold: 0.15
 });
@@ -97,9 +106,27 @@ const LEVEL = Object.freeze({
 });
 
 const COMBO = Object.freeze({
+  window: 0.9,
   multiplierStep: 5,
   maxMultiplier: 4,
   scorePulseDuration: 0.18
+});
+
+const POWER_UP = Object.freeze({
+  NONE: 'none',
+  ENERGY_FRUIT: 'energy-fruit',
+  SHIELD: 'shield',
+  BERSERK_AXE: 'berserk-axe',
+  unlockScore: 15,
+  fallDuration: 1.8,
+  groundDuration: 2,
+  // Rolled only for a newly generated empty row. This keeps power-ups visible
+  // often enough during normal play without adding hazards.
+  spawnChance: 0.28,
+  minimumChopsBetweenSpawns: 8,
+  energyFreezeDuration: 3,
+  berserkDuration: 3,
+  noticeDuration: 1.2
 });
 
 module.exports = {
@@ -114,5 +141,6 @@ module.exports = {
   CLOUDS,
   ENERGY,
   LEVEL,
-  COMBO
+  COMBO,
+  POWER_UP
 };
